@@ -59,7 +59,28 @@ class EleNa :
 	    G_proj = pkl.load(open("graph_projected.pkl","rb")) 
 	    return G,G_proj
 
-	def shortest_path(self)
+	def shortest_path(self):
+		paths = list(ox.k_shortest_paths(self.G, self.origin, self.destination, 10))
+
+		min_elev_path= None
+		min_elev = float("inf")
+
+		for path in paths:
+			avg_elev = 0
+			num_nodes = len(path)
+
+			for i in range(num_nodes-1):
+				avg_elev+= abs(self.G.nodes[path[i]]['elevation'] - self.G.nodes[path[i+1]]['elevation'])
+
+			elevation= avg_elev/num_nodes
+			if elevation<min_elev:
+				min_elev_path = path
+				min_elev = elevation
+		return min_elev_path
+
+
+
+
 
 
 
