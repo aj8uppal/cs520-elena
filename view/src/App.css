@@ -36,3 +36,54 @@
     transform: rotate(360deg);
   }
 }
+
+#viewDiv {
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+
+#overlay {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  text-align: center;
+  width: 100vw;
+  font-size: 24px;
+  color: whiteSmoke;
+  pointer-events: none;
+}
+
+#label, #start > div, #end > div {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px 25px;
+  margin: 5px;
+  border-radius: 10px;
+  display: inline-block;
+}
+
+.label {
+  display: block;
+}
+
+#start {
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+}
+
+#end {
+  position: fixed;
+  bottom: 0px;
+  right: 0px;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+button {
+  pointer-events: all;
+}
