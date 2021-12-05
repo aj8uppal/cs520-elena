@@ -35,9 +35,12 @@ function App() {
             "esri/layers/support/LabelClass",
             "esri/Basemap",
             "esri/geometry/Point",
-            "esri/layers/TileLayer"], options)
-      .then(([esriConfig, Map, FeatureLayer, SceneView, WebScene, ElevationLayer, SketchViewModel, Graphic, Polyline, BaseElevationLayer, LabelClass, Basemap, Point, TileLayer]) => {
+            "esri/layers/TileLayer",
+            "esri/widgets/Search"], options)
+      .then(([esriConfig, Map, FeatureLayer, SceneView, WebScene, ElevationLayer, SketchViewModel, Graphic, Polyline, BaseElevationLayer, LabelClass, Basemap, Point, TileLayer, Search]) => {
         esriConfig.apiKey = 'AAPK4e870b84de1741d3933f19c0e4a079c62hgfr2QWI1X2cyUmJgaMTrOUp2cY79xTNnPZjdlltlZBfdAJnTXjRSZgqVeG6dq7';
+
+        
 
         const places = [
             {
@@ -198,30 +201,37 @@ function App() {
             });
 
 
-            const map = new Map({
-              ground: {
-                layers: [ new ElevationLayer({
-                  url: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
-                }), elevationLayer]
-              },
-              basemap: basemap
-            });
+        const map = new Map({
+          ground: {
+            layers: [ new ElevationLayer({
+              url: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+            }), elevationLayer]
+          },
+          basemap: basemap,
+          showLabels: true
+        });
 
 
-            const view = new SceneView({
-              container: "viewDiv",
-              map: map,
-              qualityProfile: "high",
-              camera: {
-                position: [
-                  -72.525387,
-                  42.364154,
-                  1000
-                ],
-                heading: 0.51,
-                tilt: 75
-              }
-            });
+        const view = new SceneView({
+          container: "viewDiv",
+          map: map,
+          qualityProfile: "high",
+          camera: {
+            position: [
+              -72.525387,
+              42.364154,
+              1000
+            ],
+            heading: 0.51,
+            tilt: 75
+          }
+        });
+
+        const search = new Search({
+          view: view
+        })
+
+        view.ui.add(search, "top-right")
 
             // view.goTo({
             //   center: [42.3909, -72.5257]
@@ -281,7 +291,7 @@ function App() {
                   }
                 }
               },
-              labelingInfo: [
+              setlabelingInfo: [
                 new LabelClass({
                   labelExpressionInfo: { expression: "$feature.TRL_NAME"},
                   symbol: {
