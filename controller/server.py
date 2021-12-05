@@ -11,4 +11,5 @@ def compute_shortest_path():
     body = request.json
     start = body["start"]
     end = body["end"]
-    return jsonify(foo(start, end))
+    alg = body["alg"] if "alg" in body else "default"
+    return jsonify(foo(start, end, alg))
