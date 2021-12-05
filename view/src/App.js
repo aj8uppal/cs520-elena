@@ -1,7 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 import logo from './logo.svg';
 import './App.css';
+
 
 // by default loadCss() loads styles for the latest 4.x version
 
@@ -14,6 +16,27 @@ import { loadModules , loadCss} from 'esri-loader';
 
 
 function App() {
+  // const [status, setStatus] = useState("start");
+  // const [start, setStart] = useState([]);
+  // const [end, setEnd] = useState([]);
+  const [points, setPoints] = useState([]);
+
+  const handleSubmit = (e) => {
+      e.preventDefault();
+      axios.post('/compute_shortest_path', {
+        start: {
+          "latitude": points[0][0],
+          "longitude": points[0][1]
+        },
+        end: {
+          "latitude": points[1][0],
+          "longitude": points[1][1]
+        }
+      }).then(res => {
+        alert(`Your route is: ${res.data}`);
+      })
+  }
+
   useEffect( () => {
     loadCss("4.21");
 
@@ -188,7 +211,7 @@ function App() {
           }
         });
 
-        const elevationLayer = new ExaggeratedElevationLayer({ exaggeration: 5 });
+        const elevationLayer = new ExaggeratedElevationLayer({ exaggeration: 3 });
         const basemap = new Basemap({
                baseLayers: [
                   new TileLayer({
@@ -307,41 +330,98 @@ function App() {
 
             let currGraphic;
             let currGeometry;
-            view.on('drag', ["Control"], e => {
-              e.stopPropagation();
-              let p = view.toMap(e);
-              if (e.action === "start") {
-                if (currGraphic) {
-                  view.graphics.remove(currGraphic);
+            view.on('click', ["Control"], e => {
+              // console.log(start);
+              // console.log(end);
+              // console.log(e.mapPoint);
+              // e.stopPropagation();
+              // let mp = e.mapPoint;
+              // mp.initialize();
+              // let p = view.toMap(e);
+              let { latitude, longitude } = e.mapPoint;
+              // alert(status);
+
+
+              let geo = new Graphic(
+                {
+                  geometry: new Point({
+                  longitude: longitude,
+                  latitude: latitude
+                }),
+                symbol: {
+                  type: "simple-marker",             // autocasts as new SimpleMarkerSymbol()
+                  color: [ 226, 119, 40 ],
+                  outline: {                         // autocasts as SimpleLineSymbol()
+                    color: [ 255, 255, 255 ],
+                    width: 2
+                  }
                 }
-
-                currGeometry = new Polyline({
-                  paths: [
-                    [p.x, p.y, p.z]
-                  ],
-                  spatialReference: { wkid: 102100 }
-                });
-
-                currGraphic = new Graphic({
-                  geometry: currGeometry,
-                  symbol: sym
-                });
-
-              } else {
-                if (currGraphic) {
-                  view.graphics.remove(currGraphic);
+              });
+              setPoints(prev => {
+                if(prev.length < 2){
+                  return [...prev, [latitude, longitude]];
+                }else{
+                  view.graphics.removeAll();
+                  return [[latitude, longitude]];
                 }
-                currGeometry.paths[0].push([p.x, p.y, p.z]);
-                currGraphic = new Graphic({
-                  geometry: currGeometry,
-                  symbol: sym
-                });
-                view.graphics.add(currGraphic);
-              }
+              });
+
+              view.graphics.add(geo);
+              // if(!start.length){
+              //   // setStatus("end");
+              //   setStart([latitude, longitude]);
+              // }else if(!end.length){
+              //   // setStatus("ready");
+              //   setEnd([latitude, longitude]);
+              // }else{
+              //   // setStatus("start");
+              //   setStart([latitude, longitude]);
+              //   setEnd([]);
+              // }
+              // if ( !start.length ){
+              //   setStatus("end");
+              // }else if( !end.length ){
+              //   setStatus("ready");
+              //   setEnd([latitude, longitude]);
+              // }else {
+              //   setStart([latitude, longitude]);
+              //   setEnd([]);
+              // }
+              // debugger;
+              // console.log(e.mapPoint);
+              // let p = view.toMap(e);
+              // if (e.action === "start") {
+              //   if (currGraphic) {
+              //     view.graphics.remove(currGraphic);
+              //   }
+              //
+              //   currGeometry = new Polyline({
+              //     paths: [
+              //       [p.x, p.y, p.z]
+              //     ],
+              //     spatialReference: { wkid: 102100 }
+              //   });
+              //
+              //   currGraphic = new Graphic({
+              //     geometry: currGeometry,
+              //     symbol: sym
+              //   });
+              //
+              // } else {
+              //   if (currGraphic) {
+              //     view.graphics.remove(currGraphic);
+              //   }
+              //   currGeometry.paths[0].push([p.x, p.y, p.z]);
+              //   currGraphic = new Graphic({
+              //     geometry: currGeometry,
+              //     symbol: sym
+              //   });
+              //   view.graphics.add(currGraphic);
+              // }
             });
 
             map.addMany([trails, trailHeads]);
-            map.layers.add(labelFeatureLayer);
+            // map.layers.add(labelFeatureLayer);
         // create map with the given options at a DOM node w/ id 'mapNode'
         // let map = new Map('mapNode', {
         //   center: [-118, 34.5],
@@ -356,8 +436,32 @@ function App() {
   }, []);
   // loadCss();
   return (
-    <div id="viewDiv"> </div>
+    <>
+      <div id="viewDiv">
+      </div>
+      <div id="overlay">
+        <form onSubmit={handleSubmit}>
+        <div id="label">{`Pick the ${points.length === 0 ? "start" : points.length === 1 ? "end" : "ready"} point (Ctrl-click)`}</div>
+        <button type="submit" className={`btn-submit ${points.length !== 2 ? "disabled" : ""}`}>
+        Route!
+        </button>
+        <div id="start">
+          <div className="label">
+          Start
+          </div>
+          <div>{`Latitude: ${points[0] ? points[0][0] : "..."}, Longitude: ${points[0] ? points[0][1] : "..."}`}</div>
+        </div>
+        <div id="end">
+          <div className="label">
+          End
+          </div>
+          <div>{`Latitude: ${points[1] ? points[1][0] : "..."}, Longitude: ${points[1] ? points[1][1] : "..."}`}</div>
+        </div>
+        </form>
+      </div>
+    </>
   );
 }
+
 
 export default App;
