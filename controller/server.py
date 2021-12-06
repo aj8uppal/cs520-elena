@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 import sys
 sys.path.append('../model')
 
-from controller import foo
+from model import EleNa
 
 app = Flask(__name__)
 
@@ -12,4 +12,6 @@ def compute_shortest_path():
     start = body["start"]
     end = body["end"]
     alg = body["alg"] if "alg" in body else "default"
-    return jsonify(foo(start, end, alg))
+    E = EleNa([start["latitude"], start["longitude"]], [end["latitude"], end["longitude"]], alg=alg)
+    path = E.shortest_path_custom()
+    return jsonify(path)

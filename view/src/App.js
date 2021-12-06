@@ -20,6 +20,7 @@ function App() {
   // const [start, setStart] = useState([]);
   // const [end, setEnd] = useState([]);
   const [points, setPoints] = useState([]);
+  // const [route, setRoute] = useState([]);
 
   const handleSubmit = (e) => {
       e.preventDefault();
@@ -33,8 +34,23 @@ function App() {
           "longitude": points[1][1]
         }
       }).then(res => {
-        alert(`Your route is: ${res.data}`);
+        // alert(`Your route is: ${res.data}`);
+        // setRoute(res.data);
+        drawRoutes(res.data);
       })
+  }
+
+  const drawRoutes = (routes) => {
+    for(let i = 0; i < routes.length; i++){
+      let point = routes[i];
+
+    }
+    currGeometry = new Polyline({
+        paths: [
+          [p.x, p.y, p.z]
+        ],
+        spatialReference: { wkid: 102100 }
+    });
   }
 
   useEffect( () => {
