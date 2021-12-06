@@ -32,7 +32,7 @@ end_long = -72.5257
 
 class EleNa :
 	#Setting up the basic things required for the map and algo
-	def __init__(self, origin, destination, weight = "elevation", alg="default"):
+	def __init__(self, origin, destination, weight = "elevation", alg="min_elev_dist"):
 
 		self.origin = origin
 		self.destination = destination
@@ -80,7 +80,20 @@ class EleNa :
 				min_elev = elevation
 		return min_elev_path
 
-	def calc_weight (self, a,b):
+	def calc_max_elev(self, a,b):
+		elev = abs(self.G.nodes[a]['elevation']- self.G.nodes[b]['elevation'])
+		return -1*elev
+
+	def calc_min_elev(self, a,b):
+		elev = abs(self.G.nodes[a]['elevation']- self.G.nodes[b]['elevation'])
+		return elev
+
+	def calc_max_elev_dist(self, a,b):
+		elev = abs(self.G.nodes[a]['elevation']- self.G.nodes[b]['elevation'])
+		dist = self.G.edges[a,b,0]['length']
+		return math.sqrt((dist**2-elev**2))
+
+	def calc_min_elev_dist(self, a,b):
 		elev = abs(self.G.nodes[a]['elevation']- self.G.nodes[b]['elevation'])
 		dist = self.G.edges[a,b,0]['length']
 
@@ -92,7 +105,17 @@ class EleNa :
 			if node not in adj_mat:
 				adj_mat[node] = {}
 			for _,neighbor in self.G.edges(node):
-				adj_mat[node][neighbor] = self.calc_weight(node,neighbor)
+				if self.alg=="max_elev":
+					adj_mat[node][neighbor] = self.calc_max_elev(node,neighbor)
+				elif self.alg == "min_elev":
+					adj_mat[node][neighbor] = self.calc_min_elev(node,neighbor)
+				elif self.alg=="max_elev_dist":
+					adj_mat[node][neighbor] = self.calc_max_elev_dist(node,neighbor)
+				else:
+					adj_mat[node][neighbor] = self.calc_min_elev_dist(node,neighbor)
+
+
+
 		return adj_mat
 
 	def initialize_variables(self):
@@ -147,3 +170,28 @@ class EleNa :
 			best_path_lat_long.append((self.G.nodes[node]['x'], self.G.nodes[node]['y']))
 
 		return best_path_lat_long
+
+
+
+
+# start_lat = 42.3916
+# start_long= -72.5194
+# end_lat= 42.3843
+# end_long = -72.5302
+
+# E1 = EleNa((start_lat, start_long), (end_lat, end_long))
+# path1= E1.shortest_path_custom()
+
+# E2 = EleNa((start_lat, start_long), (end_lat, end_long), alg = "max_elev")
+# path2 = E2.shortest_path_custom()
+
+# E3 = EleNa((start_lat, start_long), (end_lat, end_long), alg = "min_elev")
+# path3 = E3.shortest_path_custom()
+
+# E4 = EleNa((start_lat, start_long), (end_lat, end_long), alg = "max_elev_dist")
+# path4 = E4.shortest_path_custom()
+
+# routes = [path1, path2, path3, path4]
+# rc = ['r', 'y', 'c', 'b']
+# plt, ax = ox.plot_graph_routes(E1.G, routes, route_colors=rc, route_linewidth=6, node_size=0)
+# plt.show()
