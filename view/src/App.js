@@ -41,7 +41,9 @@ function App() {
         // loadModules(['esri/views/MapView', 'esri/WebMap'])
         // .then(([MapView, WebMap]) => {
           // the styles, script, and modules have all been loaded (in that order)
-          drawRoutes(res.data, [points[0][0], points[0][1]], [points[1][0], points[1][1]]);
+          for(let i = 0; i < res.data.length; i++){
+            drawRoutes(res.data[i], [points[0][0], points[0][1]], [points[1][0], points[1][1]], i);
+          }
         // });
       })
   }
@@ -188,6 +190,8 @@ function App() {
           width: "4",
           style: "dash"
         }
+
+        const grL = new GraphicsLayer();
         const ExaggeratedElevationLayer = BaseElevationLayer.createSubclass({
 
           properties: {
@@ -228,7 +232,7 @@ function App() {
           }
         });
 
-        const elevationLayer = new ExaggeratedElevationLayer({ exaggeration: 10 });
+        const elevationLayer = new ExaggeratedElevationLayer({ exaggeration: 8 });
         const basemap = new Basemap({
                baseLayers: [
                   new TileLayer({
@@ -264,32 +268,48 @@ function App() {
             });
 
 
-            const dr = (routes, start_point, end_point) => {
-              const grL = new GraphicsLayer();
+            const dr = (routes, start_point, end_point, ind) => {
+              const symb = [{
+                type: "simple-line",
+                color: [234, 181, 67, 0.65], // Orange
+                width: 4
+             },
+               {
+                 type: "simple-line",
+                 color: [88, 177, 159, 0.65], // Orange
+                 width: 4
+              }, {
+                  type: "simple-line",
+                  color: [130, 88, 159, 0.65], // Orange
+                  width: 4
+               }, {
+                 type: "simple-line",
+                 color: [24, 44, 97,0.65], // Orange
+                 width: 4
+              }][ind];
               map.add(grL);
               // let pths = [start_point[1], start_point[0]];
               let pths = [];
               // debugger;
-              routes = [[start_point[1], start_point[0]], ...routes, [end_point[1], end_point[0]]];
-              for(let i = 0; i < routes.length; i++){
-                // let point = new Point({latitude: pt[0], longitude: pt[1]});
-                pths.push(routes[i]);
-                // p
-              }
-              const polyline = {
-                type: "polyline",
-                paths: pths
-              }
-              const simpleLineSymbol = {
-                type: "simple-line",
-                color: [226, 119, 40], // Orange
-                width: 4
-             };
-             const polylineGraphic = new Graphic({
-                geometry: polyline,
-                symbol: simpleLineSymbol
-             });
-             grL.add(polylineGraphic);
+              // for(let j = 0; j < all_routes.length - 1; j++){
+                // let routes = all_routes[j];
+                routes = [[start_point[1], start_point[0]], ...routes, [end_point[1], end_point[0]]];
+                for(let i = 0; i < routes.length; i++){
+                  // let point = new Point({latitude: pt[0], longitude: pt[1]});
+                  pths.push(routes[i]);
+                  // p
+                }
+                const polyline = {
+                  type: "polyline",
+                  paths: pths
+                }
+                // console.log(symbs[j]);
+               const polylineGraphic = new Graphic({
+                  geometry: polyline,
+                  symbol: symb
+               });
+               grL.add(polylineGraphic);
+             // }
               // let currGeometry;
               // let currGraphic;
               // let sym = { // symbol used for polylines
@@ -519,6 +539,8 @@ function App() {
                   return [...prev, [latitude, longitude]];
                 }else{
                   view.graphics.removeAll();
+                  // debugger;
+                  grL.graphics.removeAll()
                   return [[latitude, longitude]];
                 }
               });

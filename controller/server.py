@@ -11,7 +11,8 @@ def compute_shortest_path():
     body = request.json
     start = body["start"]
     end = body["end"]
-    alg = body["alg"] if "alg" in body else "default"
-    E = EleNa([start["latitude"], start["longitude"]], [end["latitude"], end["longitude"]], alg=alg)
-    path = E.shortest_path_custom()
-    return jsonify(path)
+    # alg = body["alg"] if "alg" in body else "default"
+    algs = ["max_elev", "min_elev", "max_elev_dist"]
+    Es = [EleNa([start["latitude"], start["longitude"]], [end["latitude"], end["longitude"]], alg=alg) for alg in algs]
+    paths = [E.shortest_path_custom() for E in Es]
+    return jsonify(paths)
