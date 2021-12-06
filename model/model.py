@@ -3,6 +3,8 @@ import osmnx as ox
 import pickle as pkl
 from pathlib import Path
 import os
+import sys
+sys.path.append('.')
 
 import math
 import time
@@ -16,7 +18,7 @@ ox.config(log_console=True)
 
 '''
 
-Sample start and end coordinates. 
+Sample start and end coordinates.
 LGRC
 start_lat = 42.3941
 start_long= -72.5267
@@ -31,7 +33,7 @@ end_long = -72.5257
 class EleNa :
 	#Setting up the basic things required for the map and algo
 	def __init__(self, origin, destination, weight = "elevation", alg="default"):
-		
+
 		self.origin = origin
 		self.destination = destination
 		self.weight = weight
@@ -41,7 +43,7 @@ class EleNa :
 		self.alg = alg
 
 	'''
-	This is the code to retireve the code from the API. We have the 
+	This is the code to retireve the code from the API. We have the
 	result in the pkl files and we will be loading those for the future.
 
 	Gproj , G = get_map("Amherst", "MA")
@@ -56,7 +58,7 @@ class EleNa :
 	    # G = ox.add_edge_grades(G)
 	    # G_proj = ox.project_graph(G)
 	    G = pkl.load(open("graph.pkl","rb"))
-	    G_proj = pkl.load(open("graph_projected.pkl","rb")) 
+	    G_proj = pkl.load(open("graph_projected.pkl","rb"))
 	    return G,G_proj
 
 	def shortest_path(self):
@@ -90,7 +92,7 @@ class EleNa :
 			if node not in adj_mat:
 				adj_mat[node] = {}
 			for _,neighbor in self.G.edges(node):
-				adj_mat[node][neighbor] = calc_weight(node,neighbor)
+				adj_mat[node][neighbor] = self.calc_weight(node,neighbor)
 		return adj_mat
 
 	def initialize_variables(self):
@@ -117,20 +119,20 @@ class EleNa :
 		return ret_node
 
 
-	def get_path(self, parent, cur, path):
+	def get_path(parent, cur, path):
 		if parent[cur] == None:
 			path.append(cur)
 			return
-		get_path(parent, parent[cur], path)
+		EleNa.get_path(parent, parent[cur], path)
 		path.append(cur)
 		return path
 
-	def shortest_path_custom(self, origin, destination):
-		adj_mat = self.create_adj(self.G)
+	def shortest_path_custom(self):
+		adj_mat = self.create_adj()
 		path=[]
 		cost, parent, unvisited = self.initialize_variables()
 		while unvisited:
-			cur = self.get_min_cost_node(cost, unvisited)
+			cur = EleNa.get_min_cost_node(cost, unvisited)
 			unvisited.remove(cur)
 			for neighbour in adj_mat[cur]:
 				if neighbour in unvisited:
@@ -138,20 +140,10 @@ class EleNa :
 						cost[neighbour]= cost[cur] + adj_mat[cur][neighbour]
 						parent[neighbour]= cur
 
-		best_path = get_path(parent, self.destination_node, path)
+		best_path = EleNa.get_path(parent, self.destination_node, path)
 		best_path_lat_long = []
 
 		for node in best_path:
 			best_path_lat_long.append((self.G.nodes[node]['x'], self.G.nodes[node]['y']))
-		
+
 		return best_path_lat_long
-
-
-
-
-
-
-
-
-
-
