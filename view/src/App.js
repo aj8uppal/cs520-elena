@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 
 import logo from './logo.svg';
@@ -20,6 +20,8 @@ function App() {
   // const [start, setStart] = useState([]);
   // const [end, setEnd] = useState([]);
   const [points, setPoints] = useState([]);
+  const [drawRoutes, setDrawRoutes] = useState(undefined);
+  const form = useRef(null);
   // const [route, setRoute] = useState([]);
 
   const handleSubmit = (e) => {
@@ -36,24 +38,21 @@ function App() {
       }).then(res => {
         // alert(`Your route is: ${res.data}`);
         // setRoute(res.data);
-        drawRoutes(res.data);
+        // loadModules(['esri/views/MapView', 'esri/WebMap'])
+        // .then(([MapView, WebMap]) => {
+          // the styles, script, and modules have all been loaded (in that order)
+          for(let i = 0; i < res.data.length; i++){
+            drawRoutes(res.data[i], [points[0][0], points[0][1]], [points[1][0], points[1][1]], i);
+          }
+        // });
       })
   }
 
-  const drawRoutes = (routes) => {
-    for(let i = 0; i < routes.length; i++){
-      let point = routes[i];
-
-    }
-    currGeometry = new Polyline({
-        paths: [
-          [p.x, p.y, p.z]
-        ],
-        spatialReference: { wkid: 102100 }
-    });
-  }
 
   useEffect( () => {
+    if(!form){
+      return;
+    }
     loadCss("4.21");
 
     // configure esri-loader to use version 3.38
@@ -64,6 +63,7 @@ function App() {
             "esri/config",
             "esri/Map",
             "esri/layers/FeatureLayer",
+            "esri/layers/GraphicsLayer",
             "esri/views/SceneView",
             "esri/WebScene",
             "esri/layers/ElevationLayer",
@@ -74,9 +74,14 @@ function App() {
             "esri/layers/support/LabelClass",
             "esri/Basemap",
             "esri/geometry/Point",
-            "esri/layers/TileLayer"], options)
-      .then(([esriConfig, Map, FeatureLayer, SceneView, WebScene, ElevationLayer, SketchViewModel, Graphic, Polyline, BaseElevationLayer, LabelClass, Basemap, Point, TileLayer]) => {
+            "esri/layers/TileLayer",
+            "esri/widgets/Search",
+            "esri/rest/locator",
+            "esri/widgets/Search/LayerSearchSource"], options)
+      .then(([esriConfig, Map, FeatureLayer, GraphicsLayer, SceneView, WebScene, ElevationLayer, SketchViewModel, Graphic, Polyline, BaseElevationLayer, LabelClass, Basemap, Point, TileLayer, Search, locator, LayerSearchSource]) => {
         esriConfig.apiKey = 'AAPK4e870b84de1741d3933f19c0e4a079c62hgfr2QWI1X2cyUmJgaMTrOUp2cY79xTNnPZjdlltlZBfdAJnTXjRSZgqVeG6dq7';
+
+
 
         const places = [
             {
@@ -127,6 +132,9 @@ function App() {
             }
           });
         });
+
+
+
 
         const labelFeatureLayer = new FeatureLayer({
           source: graphics,
@@ -187,6 +195,8 @@ function App() {
           width: "4",
           style: "dash"
         }
+
+        const grL = new GraphicsLayer();
         const ExaggeratedElevationLayer = BaseElevationLayer.createSubclass({
 
           properties: {
@@ -227,7 +237,7 @@ function App() {
           }
         });
 
-        const elevationLayer = new ExaggeratedElevationLayer({ exaggeration: 3 });
+        const elevationLayer = new ExaggeratedElevationLayer({ exaggeration: 8 });
         const basemap = new Basemap({
                baseLayers: [
                   new TileLayer({
@@ -237,30 +247,322 @@ function App() {
             });
 
 
-            const map = new Map({
-              ground: {
-                layers: [ new ElevationLayer({
-                  url: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
-                }), elevationLayer]
-              },
-              basemap: basemap
-            });
+        const map = new Map({
+          ground: {
+            layers: [ new ElevationLayer({
+              url: "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer"
+            }), elevationLayer]
+          },
+          basemap: basemap,
+          showLabels: true
+        });
 
 
-            const view = new SceneView({
-              container: "viewDiv",
-              map: map,
-              qualityProfile: "high",
-              camera: {
-                position: [
-                  -72.525387,
-                  42.364154,
-                  1000
-                ],
-                heading: 0.51,
-                tilt: 75
+        const view = new SceneView({
+          container: "viewDiv",
+          map: map,
+          qualityProfile: "high",
+          camera: {
+            position: [
+              -72.525387,
+              42.364154,
+              1000
+            ],
+            heading: 0.51,
+            tilt: 75
+          }
+        });
+
+        const searchStart = new Search({
+          view: view
+
+        })
+        const searchEnd = new Search({
+          view: view
+        })
+
+        const serviceUrl = "http://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer";
+
+        // view.on("click", function(event){
+
+        // });
+
+        // console.log()
+
+
+     // const search1 = []
+     // const search2 = []
+      view.ui.add(searchStart, "top-right");
+      view.ui.add(searchEnd, "top-right");
+        // searchStart.on('search-complete',console.log(searchStart.selectedResult));
+      searchStart.on('search-complete', function(result){
+        if(result.results && result.results.length > 0 && result.results[0].results && result.results[0].results.length > 0){
+          var geom = result.results[0].results[0].feature.geometry;
+          let latitude = geom.latitude;
+          let longitude = geom.longitude;
+          setPoints(prev => {
+            // if(prev.length > 1){
+            // return [[latitude, longitude]];
+            // }else{
+            view.graphics.removeAll();
+            // debugger;
+            grL.graphics.removeAll();
+            return [[latitude, longitude]];
+            // }
+          });
+
+          let geo = new Graphic(
+            {
+              geometry: new Point({
+              longitude: longitude,
+              latitude: latitude
+            }),
+            symbol: {
+              type: "simple-marker",             // autocasts as new SimpleMarkerSymbol()
+              color: [ 226, 119, 40 ],
+              outline: {                         // autocasts as SimpleLineSymbol()
+                color: [ 255, 255, 255 ],
+                width: 2
               }
-            });
+            }
+          });
+          view.graphics.add(geo);
+          // console.log(latitude, longitude);
+
+
+      //       let geo = new Graphic(
+      //           {
+      //             geometry: new Point({
+      //             longitude: longitude,
+      //             latitude: latitude
+      //           }),
+      //           symbol: {
+      //             type: "simple-marker",             // autocasts as new SimpleMarkerSymbol()
+      //             color: [ 226, 119, 40 ],
+      //             outline: {                         // autocasts as SimpleLineSymbol()
+      //               color: [ 255, 255, 255 ],
+      //               width: 2
+      //             }
+      //           }
+      //         });
+      //         setPoints(prev => {
+      //           if(prev.length < 2){
+      //             return [...prev, [latitude, longitude]];
+      //           }else{
+      //             view.graphics.removeAll();
+      //             // debugger;
+      //             grL.graphics.removeAll()
+      //             return [[latitude, longitude]];
+      //           }
+      //         });
+
+      //         view.graphics.add(geo);
+
+            }
+
+
+
+        }
+        );
+        searchEnd.on('search-complete', function(result){
+          if(result.results && result.results.length > 0 && result.results[0].results && result.results[0].results.length > 0){
+            var geom = result.results[0].results[0].feature.geometry;
+        //     // search2 = [geom.latitude, geom.longitude];
+
+          let latitude = geom.latitude;
+          let longitude = geom.longitude;
+          setPoints(prev => {
+            if(prev.length === 1){
+              return [...prev, [latitude, longitude]];
+            }else{
+              view.graphics.removeAll();
+              // debugger;
+              grL.graphics.removeAll();
+              return [[], [latitude, longitude]];
+              // return [[latitude, longitude]];
+            }
+          });
+          let geo = new Graphic(
+            {
+              geometry: new Point({
+              longitude: longitude,
+              latitude: latitude
+            }),
+            symbol: {
+              type: "simple-marker",             // autocasts as new SimpleMarkerSymbol()
+              color: [ 226, 119, 40 ],
+              outline: {                         // autocasts as SimpleLineSymbol()
+                color: [ 255, 255, 255 ],
+                width: 2
+              }
+            }
+          });
+          view.graphics.add(geo);
+
+
+        //     let geo = new Graphic(
+        //         {
+        //           geometry: new Point({
+        //           longitude: longitude,
+        //           latitude: latitude
+        //         }),
+        //         symbol: {
+        //           type: "simple-marker",             // autocasts as new SimpleMarkerSymbol()
+        //           color: [ 226, 119, 40 ],
+        //           outline: {                         // autocasts as SimpleLineSymbol()
+        //             color: [ 255, 255, 255 ],
+        //             width: 2
+        //           }
+        //         }
+        //       });
+        //       setPoints(prev => {
+        //         if(prev.length < 2){
+        //           return [...prev, [latitude, longitude]];
+        //         }else{
+        //           view.graphics.removeAll();
+        //           // debugger;
+        //           grL.graphics.removeAll()
+        //           return [[latitude, longitude]];
+        //         }
+        //       });
+
+        //       view.graphics.add(geo);
+
+
+          }
+        }
+        );
+        // // console.log(search1, search2);
+
+
+        // view.ui.add(lSearch, "top right")
+        view.ui.add(searchStart, "top-right");
+        view.ui.add(searchEnd, "top-right");
+
+
+            const dr = (routes, start_point, end_point, ind) => {
+              // view.graphics.removeAll();
+              // grL.graphics.removeAll();
+              const symb = [{
+                type: "simple-line",
+                color: [234, 181, 67, 0.65], // Orange
+                width: 4
+             },
+               {
+                 type: "simple-line",
+                 color: [88, 177, 159, 0.65], // Orange
+                 width: 4
+              }, {
+                  type: "simple-line",
+                  color: [130, 88, 159, 0.65], // Orange
+                  width: 4
+               }, {
+                 type: "simple-line",
+                 color: [24, 44, 97,0.65], // Orange
+                 width: 4
+              }][ind];
+              map.add(grL);
+              // let pths = [start_point[1], start_point[0]];
+              let pths = [];
+              // debugger;
+              // for(let j = 0; j < all_routes.length - 1; j++){
+                // let routes = all_routes[j];
+                routes = [[start_point[1], start_point[0]], ...routes, [end_point[1], end_point[0]]];
+                for(let i = 0; i < routes.length; i++){
+                  // let point = new Point({latitude: pt[0], longitude: pt[1]});
+                  pths.push(routes[i]);
+                  // p
+                }
+                const polyline = {
+                  type: "polyline",
+                  paths: pths
+                }
+                // console.log(symbs[j]);
+               const polylineGraphic = new Graphic({
+                  geometry: polyline,
+                  symbol: symb
+               });
+               grL.add(polylineGraphic);
+             // }
+              // let currGeometry;
+              // let currGraphic;
+              // let sym = { // symbol used for polylines
+              //   type: "simple-line", // autocasts as new SimpleMarkerSymbol()
+              //   color: "#8A2BE2",
+              //   width: "4",
+              //   style: "dash"
+              // }
+              // for(let i = 0; i < routes.length; i++){
+              //   let pt = routes[i];
+              //   let point = new Point({latitude: pt[0], longitude: pt[1]});
+              //   let mappedPoint = view.toScreen({
+              //     x: pt[0],
+              //     y: pt[1],
+              //     spatialReference: { wkid: 102100 }
+              //   });
+              //   // debugger;
+              //   // debugger;
+              //   if(i === 0){
+              //     currGeometry = new Polyline({
+              //         paths: [
+              //           [mappedPoint.x, mappedPoint.y]
+              //         ],
+              //         spatialReference: { wkid: 102100 }
+              //     });
+              //   }else{
+              //     currGeometry.
+              //   }
+              //
+              // }
+              // currGraphic = new Graphic({
+              //     geometry: currGeometry,
+              //     symbol: sym
+              // });
+              // // console.log(view);
+              // view.graphics.add(currGraphic);
+              // setTimeout( () => {
+              //   debugger;
+              // }, 1500);
+              // debugger;
+              // debugger;
+            }
+
+            // const callback = (e) => {
+            //     e.preventDefault();
+            //     axios.post('/compute_shortest_path', {
+            //       start: {
+            //         "latitude": points[0][0],
+            //         "longitude": points[0][1]
+            //       },
+            //       end: {
+            //         "latitude": points[1][0],
+            //         "longitude": points[1][1]
+            //       }
+            //     }).then(res => {
+            //       // alert(`Your route is: ${res.data}`);
+            //       // setRoute(res.data);
+            //       drawRoutes(res.data);
+            //     })
+            // }
+            //
+            // form.current.addEventListener("submit", callback, false);
+            // let routes = [
+                  // [
+                  //   -72.5227291,
+                  //   42.3912163
+                  // ],
+                  // [
+                  //   -72.5196917,
+                  //   42.3906095
+                  // ],
+                  // [
+                  //   -72.5187923,
+                  //   42.3890381
+                  // ]];
+          // drawRoutes(routes);
+          setDrawRoutes(()=>dr);
+
+
 
             // view.goTo({
             //   center: [42.3909, -72.5257]
@@ -320,7 +622,7 @@ function App() {
                   }
                 }
               },
-              labelingInfo: [
+              setlabelingInfo: [
                 new LabelClass({
                   labelExpressionInfo: { expression: "$feature.TRL_NAME"},
                   symbol: {
@@ -346,7 +648,49 @@ function App() {
 
             let currGraphic;
             let currGeometry;
-            view.on('click', ["Control"], e => {
+            view.on('drag', ["Shift"], e => {
+              e.stopPropagation();
+              let p = view.toMap(e);
+              if (e.action === "start") {
+                if (currGraphic) {
+                  view.graphics.remove(currGraphic);
+                }
+
+                currGeometry = new Polyline({
+                  paths: [
+                    [p.x, p.y, p.z]
+                  ],
+                  spatialReference: { wkid: 102100 }
+                });
+
+                currGraphic = new Graphic({
+                  geometry: currGeometry,
+                  symbol: sym
+                });
+
+              } else {
+                if (currGraphic) {
+                  view.graphics.remove(currGraphic);
+                }
+                currGeometry.paths[0].push([p.x, p.y, p.z]);
+                currGraphic = new Graphic({
+                  geometry: currGeometry,
+                  symbol: sym
+                });
+                console.log(currGeometry.paths);
+                view.graphics.add(currGraphic);
+              }
+            })
+
+            function showAddress(address, pt) {
+              debugger;
+              view.popup.open({
+                title:  address,
+                // content: address,
+                location: pt
+              });
+            }
+            view.on('click', e => {
               // console.log(start);
               // console.log(end);
               // console.log(e.mapPoint);
@@ -354,6 +698,18 @@ function App() {
               // let mp = e.mapPoint;
               // mp.initialize();
               // let p = view.toMap(e);
+              const params = {
+                location: e.mapPoint
+              };
+              console.log(e.mapPoint);
+              locator.locationToAddress(serviceUrl, params)
+              .then(function(response) { // Show the address found
+                const address = response.address;
+                showAddress(address, e.mapPoint);
+              }, function(err) { // Show no address found
+                showAddress("No address found.", e.mapPoint);
+              });
+
               let { latitude, longitude } = e.mapPoint;
               // alert(status);
 
@@ -378,6 +734,8 @@ function App() {
                   return [...prev, [latitude, longitude]];
                 }else{
                   view.graphics.removeAll();
+                  // debugger;
+                  grL.graphics.removeAll()
                   return [[latitude, longitude]];
                 }
               });
@@ -449,14 +807,14 @@ function App() {
         // handle any script or module loading errors
         console.error(err);
       });
-  }, []);
+  }, [form]);
   // loadCss();
   return (
     <>
       <div id="viewDiv">
       </div>
       <div id="overlay">
-        <form onSubmit={handleSubmit}>
+        <form ref={form} onSubmit={handleSubmit}>
         <div id="label">{`Pick the ${points.length === 0 ? "start" : points.length === 1 ? "end" : "ready"} point (Ctrl-click)`}</div>
         <button type="submit" className={`btn-submit ${points.length !== 2 ? "disabled" : ""}`}>
         Route!
