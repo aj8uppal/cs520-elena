@@ -28,9 +28,9 @@ Navigation systems that are popular today are constrained to one type of optimiz
 └── view                    # View (React.js, follows conventional React structure)
     ├── build               # Production build file
     └── src
-    |   └── Components		# Source code
+    |   └── Components	    # Source code
         |   └── ...
-    |.  ├── index.jsx.      # Root file
+    |   ├── index.jsx.      # Root file
     └── public				# Public folder (assets, index.html)
         └── ...
     ├── graph_projected.pkl # Pickled graph (projected, binary)
