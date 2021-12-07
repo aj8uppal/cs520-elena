@@ -11,7 +11,7 @@ import pandas as pd
 import networkx as nx
 api_key = "AIzaSyCVIV5wNiui7WQ4_k56ugLOKRlzvlzBkmk"
 from osmnx.utils import log
-ox.config(log_console=True)
+#ox.config(log_console=True)
 
 '''
 This is the function that helps us get the data of Amherst from 
@@ -57,15 +57,10 @@ def visualize_graph(G):
 	fig, ax = ox.plot_graph(G, bgcolor="k", node_color=nc, node_size=50, edge_linewidth=2, edge_color="#333333")
 
 
-G = pkl.load(open("graph.pkl","rb"))
 
 #visualize_graph(G)
 
 #Starting point is LGRC and ending point is ILC.
-start_lat = 42.3941
-start_long= -72.5267
-end_lat= 42.3909
-end_long = -72.5257
 
 start_point = (start_lat,start_long)
 end_point = (end_lat, end_long)
@@ -79,12 +74,9 @@ def getting_node_and_bbox(G):
 
 #bbox = getting_node_and_bbox(G)
 
-origin = ox.get_nearest_node(G, (float(start_lat), float(start_long))) 
-destination = ox.get_nearest_node(G, (float(end_lat), float(end_long)))
 
 # Checking out the data members of G_proj:
 
-G_proj = pkl.load(open("graph_projected.pkl","rb")) 
 
 print(G_proj.nodes[origin]['elevation'] - G_proj.nodes[destination]['elevation'])
 print(G_proj.nodes[origin])
@@ -93,7 +85,7 @@ print(G_proj.nodes[destination])
 
 print(G_proj.edges(origin))
 
-#def find_lowest_elevation_path(G):
+def find_lowest_elevation_path(G):
 def algorithms():
 	startnode = store start node
 	getAllNeighbourNodes = node.neighbours
@@ -112,5 +104,122 @@ def algorithms():
 				dist[v] := alt
 				previous[v] := u
 	return previous[ ]
+
+
+
+
+start_lat = 42.3916
+start_long= -72.5194
+end_lat= 42.3843
+end_long = -72.5302
+
+
+
+G_proj = pkl.load(open("graph_projected.pkl","rb")) 
+G = pkl.load(open("graph.pkl","rb"))
+origin = ox.get_nearest_node(G, (float(start_lat), float(start_long))) 
+destination = ox.get_nearest_node(G, (float(end_lat), float(end_long)))
+
+#adj_mat = [[0]*len(G.nodes())]*len(G.nodes())
+print(origin, destination)
+
+def calc_weight (a,b):
+	elev = abs(G.nodes[a]['elevation']- G.nodes[b]['elevation'])
+	dist = G.edges[a,b,0]['length']
+
+	return math.sqrt((elev**2+dist**2))
+
+
+def create_adj(G):
+	adj_mat = {}
+	for node in G.nodes():
+		if node not in adj_mat:
+			adj_mat[node] = {}
+		for _,neighbor in G.edges(node):
+			adj_mat[node][neighbor] = calc_weight(node,neighbor)
+	return adj_mat
+
+def initialize_variables(G, origin):
+	cost = {} #Initialized with infinity
+	parent = {} #Initialized with None
+	unvisited = set() # A set of all unvisited nodes
+
+	for node in G.nodes():
+		cost[node] = float("inf")
+		parent[node] = None
+		unvisited.add(node)
+	cost[origin]=0
+	return cost,parent,unvisited
+
+
+def get_min_cost_node(cost_dict, unvisited):
+	min_cost = float("inf")
+	ret_node = None
+
+	for node in cost_dict:
+		if cost_dict[node]<=min_cost and node in unvisited:
+			min_cost = cost_dict[node]
+			ret_node = node
+	return ret_node
+
+
+def get_path(parent, cur, path):
+	if parent[cur] == None:
+		path.append(cur)
+		return
+	get_path(parent, parent[cur], path)
+	path.append(cur)
+	return path
+
+def shortest_distance(G, origin, destination):
+	adj_mat = create_adj(G)
+	path=[]
+	cost, parent, unvisited = initialize_variables(G, origin)
+	while unvisited:
+		cur = get_min_cost_node(cost, unvisited)
+		unvisited.remove(cur)
+		for neighbour in adj_mat[cur]:
+			if neighbour in unvisited:
+				if cost[cur] + adj_mat[cur][neighbour]<cost[neighbour]:
+					cost[neighbour]= cost[cur] + adj_mat[cur][neighbour]
+					parent[neighbour]= cur
+
+	best_path = get_path(parent, destination, path)
+	best_path_lat_long = []
+
+	for node in best_path:
+		best_path_lat_long.append((G.nodes[node]['x'], G.nodes[node]['y']))
+	
+	return best_path_lat_long
+
+shortest_distance(G, origin, destination)
+
+
+
+'''
+adj_mat: { Node: {neigh1:weight1, neigh2:weight2, .... }}
+
+'''
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
