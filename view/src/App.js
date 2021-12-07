@@ -76,8 +76,9 @@ function App() {
             "esri/geometry/Point",
             "esri/layers/TileLayer",
             "esri/widgets/Search",
-            "esri/rest/locator"], options)
-      .then(([esriConfig, Map, FeatureLayer, GraphicsLayer, SceneView, WebScene, ElevationLayer, SketchViewModel, Graphic, Polyline, BaseElevationLayer, LabelClass, Basemap, Point, TileLayer, Search, locator]) => {
+            "esri/rest/locator",
+            "esri/widgets/Search/LayerSearchSource"], options)
+      .then(([esriConfig, Map, FeatureLayer, GraphicsLayer, SceneView, WebScene, ElevationLayer, SketchViewModel, Graphic, Polyline, BaseElevationLayer, LabelClass, Basemap, Point, TileLayer, Search, locator, LayerSearchSource]) => {
         esriConfig.apiKey = 'AAPK4e870b84de1741d3933f19c0e4a079c62hgfr2QWI1X2cyUmJgaMTrOUp2cY79xTNnPZjdlltlZBfdAJnTXjRSZgqVeG6dq7';
 
         
@@ -272,38 +273,29 @@ function App() {
           }
         });
 
-        const search = new Search({
+        const searchStart = new Search({
+          view: view
+        })
+        const searchEnd = new Search({
           view: view
         })
 
         const serviceUrl = "http://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer";
 
-        view.on("click", function(event){
-            const params = {
-              location: event.mapPoint
-            };
-            locator.locationToAddress(serviceUrl, params)
-            .then(function(response) { // Show the address found
-              const address = response.address;
-              showAddress(address, event.mapPoint);
-            }, function(err) { // Show no address found
-              showAddress("No address found.", event.mapPoint);
-            });
-        });
+        // view.on("click", function(event){
+            
+        // });
+        const lSearch = new LayerSearchSource({
+          view: view
+        })
 
-
-        function showAddress(address, pt) {
-          view.popup.open({
-            title:  address,
-            // content: address,
-            location: pt
-          });
-        }
 
         
 
-        view.ui.add(search, "top-right")
-
+        
+        view.ui.add(lSearch, "top right")
+        view.ui.add(searchStart, "top-right");
+        view.ui.add(searchEnd, "top-right");
 
             const dr = (routes, start_point, end_point, ind) => {
               const symb = [{
@@ -544,6 +536,14 @@ function App() {
                 view.graphics.add(currGraphic);
               }
             })
+
+            function showAddress(address, pt) {
+              view.popup.open({
+                title:  address,
+                // content: address,
+                location: pt
+              });
+            }
             view.on('click', e => {
               // console.log(start);
               // console.log(end);
@@ -552,6 +552,17 @@ function App() {
               // let mp = e.mapPoint;
               // mp.initialize();
               // let p = view.toMap(e);
+              const params = {
+                location: e.mapPoint
+              };
+              locator.locationToAddress(serviceUrl, params)
+              .then(function(response) { // Show the address found
+                const address = response.address;
+                showAddress(address, e.mapPoint);
+              }, function(err) { // Show no address found
+                showAddress("No address found.", e.mapPoint);
+              });
+
               let { latitude, longitude } = e.mapPoint;
               // alert(status);
 
