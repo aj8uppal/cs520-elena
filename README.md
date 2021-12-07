@@ -21,18 +21,18 @@ Navigation systems that are popular today are constrained to one type of optimiz
 ├── EleNa
 ├── controller              # Controller (Python, Flask)
     ├── server.py           # Server file
-└── model					# Model (Python, Pickle)
+└── model                   # Model (Python, Pickle)
     ├── model.py            # Model file
     ├── graph.pkl           # Pickled graph (binary)
     ├── graph_projected.pkl # Pickled graph (projected, binary)
-└── view					# View (React.js, follows conventional React structure)
+└── view                    # View (React.js, follows conventional React structure)
     ├── build               # Production build file
     └── src
-	|   └── Components		# Source code
-		|   └── ...
-	|	├── index.jsx.      # Root file
+    |   └── Components		# Source code
+        |   └── ...
+    |.  ├── index.jsx.      # Root file
     └── public				# Public folder (assets, index.html)
-	   └── ...
+        └── ...
     ├── graph_projected.pkl # Pickled graph (projected, binary)
 ```
 
