@@ -31,7 +31,7 @@ Navigation systems that are popular today are constrained to one type of optimiz
     |   └── Components	    # Source code
         |   └── ...
     |   ├── index.jsx.      # Root file
-    └── public				# Public folder (assets, index.html)
+    └── public              # Public folder (assets, index.html)
         └── ...
     ├── graph_projected.pkl # Pickled graph (projected, binary)
 ```
