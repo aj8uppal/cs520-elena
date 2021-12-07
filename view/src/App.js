@@ -81,7 +81,7 @@ function App() {
       .then(([esriConfig, Map, FeatureLayer, GraphicsLayer, SceneView, WebScene, ElevationLayer, SketchViewModel, Graphic, Polyline, BaseElevationLayer, LabelClass, Basemap, Point, TileLayer, Search, locator, LayerSearchSource]) => {
         esriConfig.apiKey = 'AAPK4e870b84de1741d3933f19c0e4a079c62hgfr2QWI1X2cyUmJgaMTrOUp2cY79xTNnPZjdlltlZBfdAJnTXjRSZgqVeG6dq7';
 
-        
+
 
         const places = [
             {
@@ -284,7 +284,7 @@ function App() {
         const serviceUrl = "http://geocode-api.arcgis.com/arcgis/rest/services/World/GeocodeServer";
 
         // view.on("click", function(event){
-            
+
         // });
 
         // console.log()
@@ -334,6 +334,7 @@ function App() {
             }
 
 
+
         }
         );
         searchEnd.on('search-complete', function(result){          
@@ -378,6 +379,11 @@ function App() {
         }
         );
         // // console.log(search1, search2);
+
+
+        view.ui.add(lSearch, "top right")
+        view.ui.add(searchStart, "top-right");
+        view.ui.add(searchEnd, "top-right");
 
 
             const dr = (routes, start_point, end_point, ind) => {
@@ -621,6 +627,7 @@ function App() {
             })
 
             function showAddress(address, pt) {
+              debugger;
               view.popup.open({
                 title:  address,
                 // content: address,
