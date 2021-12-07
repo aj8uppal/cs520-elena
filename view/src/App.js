@@ -295,12 +295,39 @@ function App() {
       view.ui.add(searchStart, "top-right");
       view.ui.add(searchEnd, "top-right");
         // searchStart.on('search-complete',console.log(searchStart.selectedResult));
-      searchStart.on('search-complete', function(result){          
-        if(result.results && result.results.length > 0 && result.results[0].results && result.results[0].results.length > 0){ 
+      searchStart.on('search-complete', function(result){
+        if(result.results && result.results.length > 0 && result.results[0].results && result.results[0].results.length > 0){
           var geom = result.results[0].results[0].feature.geometry;
           let latitude = geom.latitude;
           let longitude = geom.longitude;
-          console.log(latitude, longitude);
+          setPoints(prev => {
+            // if(prev.length > 1){
+            // return [[latitude, longitude]];
+            // }else{
+            view.graphics.removeAll();
+            // debugger;
+            grL.graphics.removeAll();
+            return [[latitude, longitude]];
+            // }
+          });
+
+          let geo = new Graphic(
+            {
+              geometry: new Point({
+              longitude: longitude,
+              latitude: latitude
+            }),
+            symbol: {
+              type: "simple-marker",             // autocasts as new SimpleMarkerSymbol()
+              color: [ 226, 119, 40 ],
+              outline: {                         // autocasts as SimpleLineSymbol()
+                color: [ 255, 255, 255 ],
+                width: 2
+              }
+            }
+          });
+          view.graphics.add(geo);
+          // console.log(latitude, longitude);
 
 
       //       let geo = new Graphic(
@@ -330,20 +357,47 @@ function App() {
       //         });
 
       //         view.graphics.add(geo);
-             
+
             }
 
 
 
         }
         );
-        searchEnd.on('search-complete', function(result){          
-          if(result.results && result.results.length > 0 && result.results[0].results && result.results[0].results.length > 0){ 
+        searchEnd.on('search-complete', function(result){
+          if(result.results && result.results.length > 0 && result.results[0].results && result.results[0].results.length > 0){
             var geom = result.results[0].results[0].feature.geometry;
         //     // search2 = [geom.latitude, geom.longitude];
 
           let latitude = geom.latitude;
           let longitude = geom.longitude;
+          setPoints(prev => {
+            if(prev.length === 1){
+              return [...prev, [latitude, longitude]];
+            }else{
+              view.graphics.removeAll();
+              // debugger;
+              grL.graphics.removeAll();
+              return [[], [latitude, longitude]];
+              // return [[latitude, longitude]];
+            }
+          });
+          let geo = new Graphic(
+            {
+              geometry: new Point({
+              longitude: longitude,
+              latitude: latitude
+            }),
+            symbol: {
+              type: "simple-marker",             // autocasts as new SimpleMarkerSymbol()
+              color: [ 226, 119, 40 ],
+              outline: {                         // autocasts as SimpleLineSymbol()
+                color: [ 255, 255, 255 ],
+                width: 2
+              }
+            }
+          });
+          view.graphics.add(geo);
 
 
         //     let geo = new Graphic(
@@ -373,7 +427,7 @@ function App() {
         //       });
 
         //       view.graphics.add(geo);
-             
+
 
           }
         }
@@ -381,12 +435,14 @@ function App() {
         // // console.log(search1, search2);
 
 
-        view.ui.add(lSearch, "top right")
+        // view.ui.add(lSearch, "top right")
         view.ui.add(searchStart, "top-right");
         view.ui.add(searchEnd, "top-right");
 
 
             const dr = (routes, start_point, end_point, ind) => {
+              // view.graphics.removeAll();
+              // grL.graphics.removeAll();
               const symb = [{
                 type: "simple-line",
                 color: [234, 181, 67, 0.65], // Orange
