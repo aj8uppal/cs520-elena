@@ -232,7 +232,7 @@ function App() {
           }
         });
 
-        const elevationLayer = new ExaggeratedElevationLayer({ exaggeration: 8 });
+        const elevationLayer = new ExaggeratedElevationLayer({ exaggeration: 1 });
         const basemap = new Basemap({
                baseLayers: [
                   new TileLayer({
