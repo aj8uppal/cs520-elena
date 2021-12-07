@@ -275,6 +275,7 @@ function App() {
 
         const searchStart = new Search({
           view: view
+
         })
         const searchEnd = new Search({
           view: view
@@ -285,17 +286,105 @@ function App() {
         // view.on("click", function(event){
 
         // });
-        const lSearch = new LayerSearchSource({
-          view: view
-        })
+
+        // console.log()
+
+
+     // const search1 = []
+     // const search2 = []
+      view.ui.add(searchStart, "top-right");
+      view.ui.add(searchEnd, "top-right");
+        // searchStart.on('search-complete',console.log(searchStart.selectedResult));
+      searchStart.on('search-complete', function(result){          
+        if(result.results && result.results.length > 0 && result.results[0].results && result.results[0].results.length > 0){ 
+          var geom = result.results[0].results[0].feature.geometry;
+          let latitude = geom.latitude;
+          let longitude = geom.longitude;
+          console.log(latitude, longitude);
+
+
+      //       let geo = new Graphic(
+      //           {
+      //             geometry: new Point({
+      //             longitude: longitude,
+      //             latitude: latitude
+      //           }),
+      //           symbol: {
+      //             type: "simple-marker",             // autocasts as new SimpleMarkerSymbol()
+      //             color: [ 226, 119, 40 ],
+      //             outline: {                         // autocasts as SimpleLineSymbol()
+      //               color: [ 255, 255, 255 ],
+      //               width: 2
+      //             }
+      //           }
+      //         });
+      //         setPoints(prev => {
+      //           if(prev.length < 2){
+      //             return [...prev, [latitude, longitude]];
+      //           }else{
+      //             view.graphics.removeAll();
+      //             // debugger;
+      //             grL.graphics.removeAll()
+      //             return [[latitude, longitude]];
+      //           }
+      //         });
+
+      //         view.graphics.add(geo);
+             
+            }
 
 
 
+        }
+        );
+        searchEnd.on('search-complete', function(result){          
+          if(result.results && result.results.length > 0 && result.results[0].results && result.results[0].results.length > 0){ 
+            var geom = result.results[0].results[0].feature.geometry;
+        //     // search2 = [geom.latitude, geom.longitude];
+
+          let latitude = geom.latitude;
+          let longitude = geom.longitude;
+
+
+        //     let geo = new Graphic(
+        //         {
+        //           geometry: new Point({
+        //           longitude: longitude,
+        //           latitude: latitude
+        //         }),
+        //         symbol: {
+        //           type: "simple-marker",             // autocasts as new SimpleMarkerSymbol()
+        //           color: [ 226, 119, 40 ],
+        //           outline: {                         // autocasts as SimpleLineSymbol()
+        //             color: [ 255, 255, 255 ],
+        //             width: 2
+        //           }
+        //         }
+        //       });
+        //       setPoints(prev => {
+        //         if(prev.length < 2){
+        //           return [...prev, [latitude, longitude]];
+        //         }else{
+        //           view.graphics.removeAll();
+        //           // debugger;
+        //           grL.graphics.removeAll()
+        //           return [[latitude, longitude]];
+        //         }
+        //       });
+
+        //       view.graphics.add(geo);
+             
+
+          }
+        }
+        );
+        // // console.log(search1, search2);
 
 
         view.ui.add(lSearch, "top right")
         view.ui.add(searchStart, "top-right");
         view.ui.add(searchEnd, "top-right");
+
 
             const dr = (routes, start_point, end_point, ind) => {
               const symb = [{
@@ -556,6 +645,7 @@ function App() {
               const params = {
                 location: e.mapPoint
               };
+              console.log(e.mapPoint);
               locator.locationToAddress(serviceUrl, params)
               .then(function(response) { // Show the address found
                 const address = response.address;
