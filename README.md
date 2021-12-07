@@ -9,6 +9,11 @@ Navigation systems that are popular today are constrained to one type of optimiz
 
 ### Usage
 
+1. Navigate to the [application](http://ec2-3-19-227-224.us-east-2.compute.amazonaws.com:6969).
+2. Select your start, end point (Ctrl-Click on Desktop, Touch on Mobile).
+3. Select your desired algorithm(s)
+4. Click **Route!**
+
 ## Developer
 
 ### Architecture
