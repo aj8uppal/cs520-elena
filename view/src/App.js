@@ -74,15 +74,10 @@ function App() {
             "esri/layers/support/LabelClass",
             "esri/Basemap",
             "esri/geometry/Point",
-<<<<<<< HEAD
             "esri/layers/TileLayer",
             "esri/widgets/Search",
             "esri/rest/locator"], options)
-      .then(([esriConfig, Map, FeatureLayer, SceneView, WebScene, ElevationLayer, SketchViewModel, Graphic, Polyline, BaseElevationLayer, LabelClass, Basemap, Point, TileLayer, Search, locator]) => {
-=======
-            "esri/layers/TileLayer"], options)
-      .then(([esriConfig, Map, FeatureLayer, GraphicsLayer, SceneView, WebScene, ElevationLayer, SketchViewModel, Graphic, Polyline, BaseElevationLayer, LabelClass, Basemap, Point, TileLayer]) => {
->>>>>>> dbd293c6adee2ac07a0ee5932a3d2ee4d0eed86d
+      .then(([esriConfig, Map, FeatureLayer, GraphicsLayer, SceneView, WebScene, ElevationLayer, SketchViewModel, Graphic, Polyline, BaseElevationLayer, LabelClass, Basemap, Point, TileLayer, Search, locator]) => {
         esriConfig.apiKey = 'AAPK4e870b84de1741d3933f19c0e4a079c62hgfr2QWI1X2cyUmJgaMTrOUp2cY79xTNnPZjdlltlZBfdAJnTXjRSZgqVeG6dq7';
 
         
